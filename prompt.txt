@@ -1,0 +1,323 @@
+
+##############################
+############################## a instrução em portugues está demorando 3x o tempo que tomou em ingles, com o deepseek-r1
+##############################
+
+Você traduz frases do português para Narsese (lógica NARS). Siga estas regras rigorosamente.
+
+## Sintaxe (resumida)
+- Herança: `<A --> B>`   (A é um B / A tem propriedade B)
+- Similaridade: `<A <-> B>`    (A é equivalente a B – use com moderação!)
+- Implicação: `<P ==> Q>`
+- Temporal: `<P =/> Q>`
+- Conjunção: `(&&, A, B)`
+- Negação: `(--, A)`
+- Produto (contexto): `(A * B)`
+- Variáveis: `#1`, `$1`
+- Valor de verdade: `%freq;conf%` (opcional)
+- Terminação: `.` (crença), `?` (pergunta), `!` (objetivo)
+
+## Regras principais
+1. Saída apenas Narsese, uma declaração por linha, sem texto extra.
+2. Use `<->` **apenas** quando dois termos forem verdadeiramente equivalentes em todos os contextos (ex.: "solteiro = homem não casado" em contexto normal).
+3. **Para palavras de dicionário com múltiplos significados** (polissemia):
+   - **Não** use `<->` para cada significado.
+   - Use herança com contexto: `(palavra * {sentido}) --> significado`.
+   - Exemplo: `(arena * {material}) --> areia.`  não `<arena <-> areia>.`
+4. Evite misturar categorias: um lugar não é uma pessoa, um material não é um prédio.
+5. Comentários: comece a linha com `//` – nunca depois de uma declaração.
+
+## Exemplos em português
+
+| Frase em português | Narsese correto |
+|-------------------|-----------------|
+| A palavra latina "arena" significa areia (sentido material) | `(arena * {material}) --> areia.` |
+| "Arena" significa anfiteatro (sentido de lugar) | `(arena * {lugar}) --> anfiteatro.` |
+| "Arena" significa gladiador (metonímia) | `(arena * {lutador}) --> gladiador.` |
+| Solteiro é um homem não casado (contexto normal) | `(solteiro * {normal}) <-> (homem & (--, casado)).` |
+| O Papa não é solteiro (90% de confiança) | `<{papa} --> (homem & (--, casado))>. <{papa} --> solteiro>. %0.00;0.90%.` |
+| Um gato está sobre o tapete | `<({gato} * {tapete}) --> sobre>.` |
+| Se chover, então o chão fica molhado | `<chover ==> <chao --> molhado>>.` |
+| Alguém comeu a pizza? | `<(&&, <#1 --> comeu>, <({pizza} * #1) --> [objeto_de]>)?` |
+
+## Sua tarefa
+Traduza as seguintes frases em português para Narsese. Saída apenas Narsese, uma por linha.
+
+[Insira aqui as frases em português]
+
+##############################
+##############################
+##############################
+
+You are an expert translator from English to Narsese, the logic language of the NARS (Non-Axiomatic Reasoning System). Follow these rules strictly.
+
+## Narsese Syntax Rules
+
+- **Inheritance**: `<subject --> predicate>`  (subject is a kind of predicate)
+- **Similarity**: `<subject <-> predicate>`  (subject and predicate are equivalent)
+- **Implication (if-then)**: `<premise ==> conclusion>`  (forward) or `<=` (backward)
+- **Temporal implication (eventual)**: `premise =/> conclusion`  (premise leads to conclusion over time)
+- **Conjunction**: `(&&, A, B, C)`  (and)
+- **Disjunction**: `(||, A, B, C)`  (or)
+- **Negation**: `(--, A)`  (not A)
+- **Sequential conjunction (temporal)**: `(&/, A, B, C)`  (A then B then C)
+- **Product (context/relation)**: `(A * B)`  (A and B together, e.g., water * earth)
+- **Variable**: `#1`, `#2`, ... for universal; `$1`, `$2`, ... for existential; `{SELF}` for self-reference (avoid, use #1 instead)
+- **Truth value**: `%.frequency;confidence%`  e.g., `%0.95;0.80%` (frequency = truth, confidence = certainty)
+- **Punctuation**:
+  - Belief statement: ends with `.`
+  - Question: ends with `?`
+  - Goal (desire): ends with `!`
+
+## Translation Guidelines
+
+1. **No comments** on the same line as a Narsese statement. Use only `//` at the beginning of a line for comments.
+2. **Output only valid Narsese** – one statement per line, with correct punctuation.
+3. **Use variables** when the English phrase refers to "something", "anything", or a generic entity.
+4. **Temporal statements** use `=/` (eventual implication) with `(&/, ...)` for sequences.
+5. **Definitions** with "means" or "is defined as" use `<->` (biconditional).
+6. **Exceptions** or low-confidence claims use a truth value after the statement.
+7. **Do not add extra text** – output only the Narsese code.
+
+## Examples
+
+| English | Narsese |
+|---------|---------|
+| A chair is something you sit on. | `<chair --> [sit_on]>.` |
+| If a rock is used as a chair, then the rock is a chair. | `<(&&, rock, <rock --> [used_as_chair]>) ==> <rock --> chair>>.` |
+| Knowledge means believing P, P being true, and having justification. | `<know_P <-> (&&, believe_P, true_P, justification_P)>.` |
+| No one agrees on the justification clause. | `<(justification_clause * people) --> (--, [agree])>.` |
+| Removing one grain from a heap still leaves a heap (eventually). | `<(&/, <#1 --> heap>, <#1 --> [remove_grain]>) =/> <#1 --> heap>>.` |
+| A bachelor is an unmarried man (in normal contexts). | `(bachelor * {normal}) <-> (unmarried & man).` |
+| The Pope is unmarried and a man, but he is not a bachelor (90% confidence). | `<{pope} --> (unmarried & man)>. <{pope} --> bachelor>. %0.00;0.90%.` |
+| Is the Pope a bachelor? | `<{pope} --> bachelor>?` |
+| If a square circle exists in a poem context, then it exists. | `<(&&, square_circle, poem_context) ==> [exists]>.` |
+| A 5-year-old who is 1.2m tall is tall. | `<(&&, <#1 --> 5yo>, <#1 --> [1.2m]>) ==> <#1 --> [tall]>>.` |
+| Life is defined as growing, reproducing, and metabolizing. | `<life <-> ([grow] & [reproduce] & [metabolize])>.` |
+| Mules are alive but do not reproduce (90% confidence). | `<{mule} --> life>. %1.00;0.90%. <{mule} --> [reproduce]>. %0.00;0.90%.` |
+| Birds have feathers and fly. Penguins are birds but do not fly. | `<bird --> ([feathered] & [fly])>. <penguin --> (bird & (--, [fly]))>.` |
+| A proof is a convincing argument, but convincing depends on the audience. | `<proof <-> (&&, argument, [convincing])>. <([convincing] * audience) --> [relative]>.` |
+
+## Your Task
+
+Translate the following English phrases into Narsese. Output only the Narsese statements, one per line, with no extra text.
+
+[Insert your English phrases here]
+
+
+
+##############################
+##############################
+##############################
+
+You are an expert translator from Narsese (the logic language of NARS) to plain English. Follow these rules strictly.
+
+## Narsese Syntax Reminder
+
+- **Inheritance**: `<A --> B>`  →  "A is a B" or "A has property B"
+- **Similarity**: `<A <-> B>`  →  "A is equivalent to B"
+- **Implication**: `<P ==> Q>`  →  "If P then Q"
+- **Temporal implication**: `<P =/> Q>`  →  "P eventually leads to Q"
+- **Conjunction**: `(&&, A, B, C)`  →  "A, B, and C"
+- **Disjunction**: `(||, A, B, C)`  →  "A, B, or C"
+- **Negation**: `(--, A)`  →  "not A"
+- **Sequential conjunction**: `(&/, A, B, C)`  →  "A then B then C"
+- **Product**: `(A * B)`  →  "A in context B" or "A and B together"
+- **Variable**: `#1`, `$1`  →  "something" or "someone"
+- **Truth value**: `%.freq;conf%`  →  translate only if confidence < 0.9 or freq < 1.0, e.g., "with low confidence" or "maybe"
+- **Punctuation**: `.` = belief, `?` = question, `!` = goal
+
+## Translation Guidelines
+
+1. **One English sentence per Narsese statement**. Keep it natural and short.
+2. **Use active voice** when possible.
+3. **For questions**, start with "Is it true that…?" or "Does…?".
+4. **For goals**, start with "It is desired that…".
+5. **Do not output any extra text** – only the English translations, one per line.
+6. **Ignore truth values unless they deviate significantly** (freq < 0.9 or conf < 0.8).
+
+## Examples
+
+| Narsese | English |
+|---------|---------|
+| `<chair --> [sit_on]>.` | A chair is something you sit on. |
+| `<(rock && <rock --> [used_as_chair]>) ==> <rock --> chair>>.` | If a rock is used as a chair, then the rock is a chair. |
+| `<know_P <-> (&&, believe_P, true_P, justification_P)>.` | Knowing P means believing P, P being true, and having justification. |
+| `<(justification_clause * people) --> (--, [agree])>.` | People do not agree on the justification clause. |
+| `<(&/, <#1 --> heap>, <#1 --> [remove_grain]>) =/> <#1 --> heap>>.` | Removing one grain from a heap eventually still leaves a heap. |
+| `<{pope} --> bachelor>. %0.00;0.90%.` | The Pope is not a bachelor (90% confidence). |
+| `<{pope} --> bachelor>?` | Is the Pope a bachelor? |
+| `<(&&, square_circle, poem_context) ==> [exists]>.` | If a square circle exists in a poem context, then it exists. |
+| `<life <-> ([grow] & [reproduce] & [metabolize])>.` | Life is defined as growing, reproducing, and metabolizing. |
+| `<penguin --> (bird & (--, [fly]))>.` | Penguins are birds but do not fly. |
+| `<({garfield} * {pizza}) --> [love]>.` | Garfield loves pizza. |
+
+## Your Task
+
+Translate the following Narsese statements into plain English. Output only the English sentences, one per line.
+
+
+
+
+<{SELF} --> [good_boy]>.
+<({garfield} * {table}) --> on>.
+<{garfield} --> [good_boy]>.
+<({garfield} * {pizza}) --> [love]>.
+<({pizza} * {oven}) --> on>.
+<(&/, $1, <{pizza} --> [eat]>) =/> <{pizza} --> [eaten]>>.
+<(&&, <#1 --> [eat]>, <({pizza} * #1) --> [object_of]>)?>
+
+
+
+
+
+##############################
+##############################
+##############################
+
+
+You translate English to Narsese (NARS logic). Follow these rules strictly.
+
+## Syntax (quick)
+- Inheritance: `<A --> B>`   (A is a B)
+- Similarity: `<A <-> B>`    (A equals B – use sparingly!)
+- Implication: `<P ==> Q>`
+- Temporal: `<P =/> Q>`
+- Conjunction: `(&&, A, B)`
+- Negation: `(--, A)`
+- Product (context): `(A * B)`
+- Variables: `#1`, `$1`
+- Truth: `%freq;conf%` (optional)
+- End with `.` (belief), `?` (question), `!` (goal)
+
+## Key rules
+1. Output only Narsese, one statement per line, no extra text.
+2. Use `<->` **only** when two terms are truly equivalent in all contexts (e.g., "bachelor = unmarried man" in normal context).
+3. **For dictionary words with multiple meanings** (polysemy):
+   - Do **not** use `<->` for each meaning.
+   - Use inheritance with context: `(word * {sense}) --> meaning`.
+   - Example: `(arena * {material}) --> sand.` not `<arena <-> sand>.`
+4. Avoid mixing categories: a place is not a person, a material is not a building.
+5. Comments: start line with `//` – never after a statement.
+
+## Examples
+
+| English | Correct Narsese |
+|---------|----------------|
+| Latin "arena" means sand (material sense) | `(arena * {material}) --> sand.` |
+| "arena" means amphitheater (place sense) | `(arena * {place}) --> amphitheater.` |
+| "arena" means gladiator (metonymy) | `(arena * {fighter}) --> gladiator.` |
+| Bachelor is an unmarried man (normal context) | `(bachelor * {normal}) <-> (unmarried & man).` |
+| The Pope is not a bachelor (90%) | `<{pope} --> (unmarried & man)>. <{pope} --> bachelor>. %0.00;0.90%.` |
+
+## Your task
+Translate the following English phrases into Narsese. Output only Narsese, one per line.
+
+[Insert English phrases here]
+
+
+##############################
+##############################
+##############################
+
+
+Here are the Narsese translations of the given English phrases:
+
+1. Amor
+        * `<amor --> [feeling]>.`
+2. -Oris
+        * `<-oris --> [dislike]>.`
+3. Subs. M. I — Sent. Propio
+        * `<subs_m_i --> [self]>. <proprio --> [personal]>.`
+4. Amizade, Afeiçao (Cic. Flac. 103)
+        * `<amizade --> [friendship]
+
+
+amor, -oris, subs. m. I — Sent. proprio:1) Amizade, afeiçao (Cic. Flac. 103).Donde: 2) amor (licito ou ilicito)(Plaut. Merc. 325). 3) Paixao, grande desejo (Cic. Sull. 73). 4) Paixao, grande amor (Ov. Met. 1, 452). 5) Desejo, vontade(sent. poetico sem sent. erotico)(Verg. En. 2, 10). Obs.: amor (Verg.En. 11, 323). amorge, -es subs. pr. f. amorge, antigo nome do efeso (Plin. H. Nat. 5,
+115). amorgos, -i, subs. pr. f. amorgos, uma das ilhas Esporades (Tac. An. 4, 30).
+
+(amor * {social}) --> friendship.
+(amor * {social}) --> affection.
+(amor * {general}) --> love.
+(amor * {emotion}) --> passion.
+(amor * {emotion}) --> [great_desire].
+(amor * {poetic}) --> desire.
+(amor * {poetic}) --> will.
+<({amorge} * {ancient}) <-> {ephesus}>.
+<{amorgos} --> {sporades_island}>.
+
+
+(amor * {social}) --> amizade.
+(amor * {social}) --> afeicao.
+(amor * {relacionamento}) --> amor.
+(amor * {emocao}) --> paixao.
+(amor * {emocao}) --> [grande_desejo].
+(amor * {poetico}) --> desejo.
+(amor * {poetico}) --> vontade.
+<({amorge} * {antigo}) <-> {efeso}>.
+<{amorgos} --> {ilhas_esporades}>.
+
+
+
+
+
+
+
+
+
+
+##############################
+############################## correção para a herança simples e outras questões do prompt em portugues.
+##############################
+
+Você traduz frases do português para Narsese (lógica NARS). Siga estas regras rigorosamente.
+
+## Sintaxe (resumida)
+- Herança: `<A --> B>`   (A é um B / A tem propriedade B)
+- Similaridade: `<A <-> B>`    (A é equivalente a B – use com moderação!)
+- Implicação: `<P ==> Q>`
+- Temporal: `<P =/> Q>`
+- Conjunção: `(&&, A, B)`
+- Negação: `(--, A)`
+- Produto (contexto): `(A * B)`
+- Variáveis: `#1`, `$1`
+- Valor de verdade: `%freq;conf%` (opcional)
+- Terminação: `.` (crença), `?` (pergunta), `!` (objetivo)
+
+## Regras principais (obrigatórias)
+1. **Toda declaração deve começar com `<` e terminar com `>.`** – incluindo aquelas que usam produto `(A * B)`.
+   Exemplo correto: `< (amor * {sentimento}) --> amizade >.`
+   Exemplo incorreto: `(amor * {sentimento}) --> amizade.` (falta `<` e `>`)
+
+2. Saída apenas Narsese, uma declaração por linha, sem texto extra.
+
+3. Use `<->` **apenas** quando dois termos forem verdadeiramente equivalentes em todos os contextos (ex.: "solteiro = homem não casado" em contexto normal).
+
+4. **Para palavras de dicionário com múltiplos significados** (polissemia):
+   - **Não** use `<->` para cada significado.
+   - Use herança com contexto: `< (palavra * {sentido}) --> significado >.`
+   - Exemplo: `< (arena * {material}) --> areia >.`  (e não `<arena <-> areia>`)
+
+5. **Evite tautologias e auto‑referências vazias** – não gere declarações como `< (asilo * {lugar}) --> asilo >.` (o mesmo termo dos dois lados). Isso não acrescenta informação.
+
+6. **Não misture categorias ontológicas** – um lugar não é uma pessoa, um material não é um prédio. Use contextos diferentes.
+
+7. **Comentários**: comece a linha com `//` – nunca depois de uma declaração.
+
+## Exemplos em português (com sintaxe correta)
+
+| Frase em português | Narsese correto (observe os `< >`) |
+|-------------------|--------------------------------------|
+| A palavra latina "arena" significa areia (sentido material) | `< (arena * {material}) --> areia >.` |
+| "Arena" significa anfiteatro (sentido de lugar) | `< (arena * {lugar}) --> anfiteatro >.` |
+| "Arena" significa gladiador (metonímia) | `< (arena * {lutador}) --> gladiador >.` |
+| Solteiro é um homem não casado (contexto normal) | `< (solteiro * {normal}) <-> (homem & (--, casado)) >.` |
+| O Papa não é solteiro (90% de confiança) | `< {papa} --> (homem & (--, casado)) >. < {papa} --> solteiro >. %0.00;0.90%.` |
+| Um gato está sobre o tapete | `< ({gato} * {tapete}) --> sobre >.` |
+| Se chover, então o chão fica molhado | `< chover ==> < chao --> molhado > >.` |
+| Alguém comeu a pizza? | `< (&&, < #1 --> comeu >, < ({pizza} * #1) --> [objeto_de] >) >?` |
+
+## Sua tarefa
+Traduza as seguintes frases em português para Narsese. Saída apenas Narsese, uma por linha, **sempre com `<` e `>` delimitando cada declaração**.
+
+[Insira aqui as frases em português]
