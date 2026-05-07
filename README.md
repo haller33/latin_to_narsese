@@ -25,7 +25,7 @@ NARS uses **Non‑Axiomatic Logic (NAL)**, which operates under the assumption o
 
 The process is divided into clear steps:
 
-1.  **Extraction & Translation**: The script `translator.modular.py` reads an SQLite database (`latin_portuguese.bkp.db`) containing dictionary entries. For each entry, it extracts the Portuguese meaning and uses a language model (Groq API or local Ollama) to generate one or more Narsese sentences, following the rules defined in `prompt.txt`.
+1.  **Extraction & Translation**: The script `translator.modular.py` reads an SQLite database (`latin_portuguese.bkp.db`) containing dictionary entries. For each entry, it extracts the Portuguese meaning and uses a language model (Groq API or local Ollama) to generate one or more Narsese sentences, following the rules defined in `prompt.txt` and used on the `translator.modular.py`.
 2.  **Storage & Organization**: The generated Narsese sentences are saved into:
     *   `narseses_latim_portugues.db`: SQLite database tracking all translations.
     *   `narseses.txt.nal` and `narseses.sort.txt.nal`: Plain‑text files, unsorted and sorted, ready for use.
@@ -117,6 +117,14 @@ To process dictionary entries and generate `.nal` files:
 
 ```bash
 python translator.modular.py
+
+# or
+
+uv run python3 translator.modular.py
+
+# or
+
+sh run.sh
 ```
 
 -   The script reads the `latin_portuguese.bkp.db` database.
@@ -136,7 +144,7 @@ To load the generated knowledge into NARS and start interacting:
     This script processes the translation database and produces output in the format expected by ONA.
 3.  **Load into ONA**. For example, pipe the output to the ONA executable:
     ```bash
-    ./show_narseses.sh | ./OpenNARS-for-Applications/ona
+    ./OpenNARS-for-Applications/NAR shell < $( ./show_narseses.sh ) 
     ```
     You can now ask questions to the system!
 

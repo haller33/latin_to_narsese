@@ -1,1 +1,1 @@
-uv run --with requests python scrap.py
+uv run python3 translator.modular.py
