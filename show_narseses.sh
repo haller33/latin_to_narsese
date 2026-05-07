@@ -1,0 +1,1 @@
+sqlite3 narseses_latim_portugues.devstral.db 'select narsese_output from translations' | sed 's/`//g' |sed 's/`//g' | sed 's/```//g' | grep '<' --color=none | sed 's/^/</g' | sed 's/$/>./g' | sed 's/<</</g' | sed 's/>.>./>./g' | sed 's/>. </>.\n</g'   
