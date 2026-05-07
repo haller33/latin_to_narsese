@@ -1,3 +1,4 @@
+// https://gist.github.com/haller33/c93bdcd6482a7bd94f41d458be00b08b
 // Importa o módulo File System nativo do Node.js
 const fs = require('fs');
 
