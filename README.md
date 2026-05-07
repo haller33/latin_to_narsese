@@ -1,129 +1,199 @@
-# Latin → Narsese (NAL) Translator
+# Latin ⟶ Narsese (NAL)
 
-> Turn a Latin–Portuguese dictionary into Narsese, the language of the Non‑Axiomatic Reasoning System (NARS).
+> 🌐 **Turning a Latin–Portuguese dictionary into formal knowledge for NARS.**
 
-## What is this?
+This project converts entries from a Latin–Portuguese dictionary (`dicionariolatino.com`) into **Narsese**, the language of the **Non‑Axiomatic Reasoning System (NARS)**. The goal is to represent lexical knowledge in a format that NARS can use to reason, learn, and answer questions.
 
-This tool reads entries from a Latin‑Portuguese dictionary (`dicionariolatino.com`) and translates their meanings into [Narsese](https://github.com/opennars/opennars/wiki/OpenNARS-Glossary), the formal language of **NAL** (Non‑Axiomatic Logic).  
+NARS uses **Non‑Axiomatic Logic (NAL)**, which operates under the assumption of insufficient knowledge and resources (AIKR). This project builds a bridge between natural language and symbolic reasoning, allowing a NARS agent to "understand" Latin concepts and their relationships.
 
-The goal is to represent lexical knowledge in a machine‑understandable format that NARS can reason with — inheritance, similarity, implication, and all.
+## Table of Contents
 
-## How it works
+- [How It Works](#how-it-works)
+- [Repository Structure](#repository-structure)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Usage](#usage)
+    - [1. Running the Main Translator](#1-running-the-main-translator)
+    - [2. Running with OpenNARS‑for‑Applications](#2-running-with-opennars-for-applications)
+    - [3. Pre‑processing Texts with the `project/` Directory](#3-pre-processing-texts-with-the-project-directory)
+- [Example Output (Narsese)](#example-output-narsese)
+- [License](#license)
 
-1. **Extract** – the dictionary is stored in a SQLite database (`latin_portuguese.bkp.db`), originally scraped from dicionariolatino.com.
-2. **Translate** – a Python script (`dumper.modular.py`) sends each entry to an LLM (Groq or Ollama) with a strict Narsese prompt.
-3. **Store** – the generated Narsese and the original text are saved in `narseses_latim_portugues.db`.
-4. **Output** – the final Narsese statements are also written to plain‑text `.nal` files.
+---
 
-![](https://via.placeholder.com/800x4?text=)
+## How It Works
 
-### Example  
+The process is divided into clear steps:
 
-**Portuguese meaning**:  
-> *"Arena" can mean sand (material) or amphitheatre (place).*
+1.  **Extraction & Translation**: The script `translator.modular.py` reads an SQLite database (`latin_portuguese.bkp.db`) containing dictionary entries. For each entry, it extracts the Portuguese meaning and uses a language model (Groq API or local Ollama) to generate one or more Narsese sentences, following the rules defined in `prompt.txt`.
+2.  **Storage & Organization**: The generated Narsese sentences are saved into:
+    *   `narseses_latim_portugues.db`: SQLite database tracking all translations.
+    *   `narseses.txt.nal` and `narseses.sort.txt.nal`: Plain‑text files, unsorted and sorted, ready for use.
+3.  **Reasoning with OpenNARS**: The repository includes **OpenNARS‑for‑Applications (ONA)** as a submodule. `show_narseses.sh` is a helper script to format the output so it can be loaded directly into ONA, completing the cycle from dictionary to reasoning.
 
-**Generated Narsese**:
-```nal
-< (arena * {material}) --> areia >.
-< (arena * {lugar}) --> anfiteatro >.
-```
+---
 
-Each statement is wrapped in `< >`, uses the inheritance copula `-->`, and can include a **context term** (like `{material}`) to handle polysemy cleanly.
-
-## Project structure
+## Repository Structure
 
 ```
 latin_to_narsese/
-├── dumper.modular.py          # Main translator script
-├── dicionariolatino.com       # Raw dictionary DB dump
-├── narseses.txt.nal           # All extracted Narsese statements
-├── narseses.sort.txt.nal      # Sorted version
-├── prompt.txt                 # System prompt for the LLM
-├── env.groq / env.ollama      # Environment configuration
-├── run.sh                     # Quick execution wrapper
-├── nix-shell.sh               # Nix environment (optional)
-└── LICENSE                    # MIT
+├── translator.modular.py      # Main translator script
+├── show_narseses.sh           # Helper to format output for ONA
+├── OpenNARS-for-Applications/ # OpenNARS submodule (reasoner)
+├── dicionariolatino.com/      # Submodule with the dictionary database
+├── prompt.txt                 # Detailed instructions for generating Narsese
+├── env.groq / env.ollama      # Example environment configuration files
+├── run.sh / nix-shell.sh      # Utility scripts for execution
+├── narseses.latimp.txt.nal    # Output file with Narsese sentences
+├── project/                   # Auxiliary tools directory
+│   ├── README.md              # Documentation of auxiliary tools
+│   ├── extract-paragraphs.js  # Extracts paragraphs from .txt files
+│   ├── frequencia_de_termos.js# Generates word frequency lists
+│   ├── harrypotter/           # Modern corpus (Portuguese/English)
+│   └── virgil/                # Classical corpus (Virgil's Aeneid)
+└── LICENSE                    # MIT License
 ```
+
+---
+
+## Prerequisites
+
+Before starting, make sure you have installed:
+
+-   **Python 3.8+** with `pip`
+-   **SQLite3**
+-   **Pandoc** (for HTML conversion): `sudo apt install pandoc` (or equivalent)
+-   **Node.js** (to use the tools in the `project/` directory)
+-   **Git** (to clone submodules)
+-   **Ollama** (for local execution) or a **Groq API key** (for cloud execution)
+
+---
+
+## Setup
+
+1.  **Clone the repository and submodules:**
+    ```bash
+    git clone --recursive https://github.com/haller33/latin_to_narsese.git
+    cd latin_to_narsese
+    ```
+    If you already cloned without `--recursive`, run:
+    ```bash
+    git submodule update --init --recursive
+    ```
+
+2.  **Set up the Python environment:**
+    ```bash
+    pip install requests tqdm
+    ```
+
+3.  **Choose and configure the translation backend (LLM).**
+
+    *   **Option 1: Ollama (Local, free)**
+        -   Install and run Ollama.
+        -   Pull a model, e.g.: `ollama pull devstral:24b`
+        -   Set environment variables:
+            ```bash
+            export TRANSLATE_BACKEND=ollama
+            export OLLAMA_MODEL=devstral:24b
+            ```
+        -   (Optional) Change the base URL in `OLLAMA_URL` if needed.
+
+    *   **Option 2: Groq API (Cloud, faster)**
+        -   Get an API key from [console.groq.com](https://console.groq.com).
+        -   Set environment variables:
+            ```bash
+            export TRANSLATE_BACKEND=groq
+            export GROQ_API_KEY="your_key_here"
+            export GROQ_MODEL="llama-3.3-70b-versatile"
+            ```
+
+---
 
 ## Usage
 
-### 1. Clone and set up
+### 1. Running the Main Translator
+
+To process dictionary entries and generate `.nal` files:
 
 ```bash
-git clone https://github.com/haller33/latin_to_narsese.git
-cd latin_to_narsese
+python translator.modular.py
 ```
 
-### 2. Install dependencies
+-   The script reads the `latin_portuguese.bkp.db` database.
+-   It automatically skips already translated entries (using `narseses_latim_portugues.db`).
+-   To respect rate limits on free APIs, there is an 80‑second delay between requests.
+-   Progress and logs are displayed in the terminal.
 
-```bash
-pip install requests tqdm  # core requirements
-sudo apt install pandoc    # for HTML → plain text conversion
+### 2. Running with OpenNARS‑for‑Applications (ONA)
+
+To load the generated knowledge into NARS and start interacting:
+
+1.  **Compile ONA**. Follow the instructions in the `OpenNARS-for-Applications/` directory (usually using `make`).
+2.  **Format the output** using the helper script:
+    ```bash
+    ./show_narseses.sh
+    ```
+    This script processes the translation database and produces output in the format expected by ONA.
+3.  **Load into ONA**. For example, pipe the output to the ONA executable:
+    ```bash
+    ./show_narseses.sh | ./OpenNARS-for-Applications/ona
+    ```
+    You can now ask questions to the system!
+
+### 3. Pre‑processing Texts with the `project/` Directory
+
+The tools in `project/` can be used to analyse word frequencies and prepare new corpora.
+
+-   **Example: Generate a frequency list from the Aeneid**
+    ```bash
+    cd project/
+    node extract-paragraphs.js virgil/aened.shtml.formated.txt > paragraphs.json
+    node frequencia_de_termos.js paragraphs.json > frequencies_virgil.txt
+    ```
+    This produces a list of words and their relative frequencies, sorted from most to least common.
+
+-   **Purpose of the scripts:**
+    -   `extract-paragraphs.js`: Converts a `.txt` file into a JSON array of paragraphs.
+    -   `frequencia_de_termos.js`: Generates the frequency list from the JSON.
+    -   `frequencia_de_termos.trim.js`: Version with Unicode‑aware cleaning, preserving accents.
+
+The included corpora (`harrypotter/`, `virgil/`) serve as examples and bases for testing and analysis.
+
+---
+
+## Example Output (Narsese)
+
+The dictionary often contains multiple meanings for a word, such as "arena" (sand or amphitheatre). The translator resolves this ambiguity using **context terms**, generating sentences like:
+
+```nal
+< (arena * {material}) --> sand >.
+< (arena * {place}) --> amphitheatre >.
 ```
 
-### 3. Choose a backend
+Each sentence is a NAL **statement**, delimited by `<` and `>`:
+-   `(arena * {material})`: A product term representing the word "arena" in the context "material".
+-   `sand`: The term for the meaning.
+-   `-->`: The **inheritance** copula, indicating that an instance of "arena" in the "material" context **is a** "sand".
+-   `.`: The termination indicates a **belief** (truth statement).
 
-| Backend | Environment variable | Notes |
-|---------|----------------------|-------|
-| **Ollama** (local) | `TRANSLATE_BACKEND=ollama` | Free, private, requires Ollama running locally |
-| **Groq** (cloud) | `TRANSLATE_BACKEND=groq` + `GROQ_API_KEY` | Faster, needs an API key |
+For a more complex phrase like "love is a feeling", the translator could generate:
 
-Example with ollama:
-```bash
-export TRANSLATE_BACKEND=ollama
-export OLLAMA_MODEL=devstral:24b   # or any other model
-python dumper.modular.py
+```nal
+< (love * {feeling}) --> friendship >.
 ```
 
-### 4. Run the translator
+The prompt in `prompt.txt` includes dozens of rules and examples to ensure high‑quality translation, such as the correct use of `<->` (equivalence), `==>` (implication), and logical operators like `&&` (conjunction).
 
-```bash
-./run.sh
-```
-
-The script will:
-- Read unprocessed dictionary entries from `latin_portuguese.bkp.db`.
-- Send each definition to the LLM together with the Narsese prompt.
-- Save the resulting Narsese into `narseses_latim_portugues.db` and the `.nal` files.
-- Wait 80 seconds between requests (to be gentle with free APIs).
-
-## Output format
-
-The generated Narsese follows the rules defined in `prompt.txt`:
-
-- Every statement is delimited by `<` and `>` and ends with `.`, `?`, or `!`.
-- Use `-->` for inheritance (“is a” / “has property”).
-- Use `<->` only for true equivalence.
-- Use `(A * B)` to provide context and disambiguate meanings.
-- Truth values (frequency/confidence) are optional but can be appended like `%0.90;0.95%`.
-
-## Why NAL / Narsese?
-
-[NARS](https://cis.temple.edu/~pwang/) is a reasoning system built for **insufficient knowledge and resources** (AIKR).  
-Its language, **Narsese**, is a formal, term‑based logic that supports:
-
-- **Inheritance** (`-->`) – the core relation of generalisation/specialisation.  
-- **Similarity** (`<->`) – mutual inheritance.  
-- **Implication** (`==>`) – for conditional knowledge.  
-- **Truth values** (frequency & confidence) – to handle uncertainty.  
-
-Translating a dictionary into Narsese allows a NARS agent to:
-- Answer questions about word meanings.
-- Reason by analogy and inheritance.
-- Learn new meanings from context.
-
-## Status
-
-✅ Basic pipeline working (extract → LLM → store → output).  
-🔜 Future ideas:  
-- Improve prompt to generate even cleaner Narsese.
-- Add support for batch processing.
-- Provide a small NARS demo that queries the generated knowledge.
+---
 
 ## License
 
-[MIT](LICENSE) – feel free to use, modify, and contribute.
+This project is licensed under the terms of the **MIT** license. See the [LICENSE](LICENSE) file for details.
 
-## Author
+---
 
-Made by [haller33](https://github.com/haller33) – because Latin belongs in AI, too.
+## Contributions and Contact
+
+Contributions are welcome! Feel free to open issues and pull requests.
+
+Developed by [haller33](https://github.com/haller33) to make Latin understandable for machines that reason.
