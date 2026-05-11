@@ -158,6 +158,16 @@ def get_raw_html(word_hash: str) -> str:
             raise ValueError(f"Word hash {word_hash} not found")
         return row[0]
 
+def input_hash_exists(input_text: str) -> bool:
+    """
+    Check if the input hash for the given text already exists in the translations table.
+    Returns True if exists, False otherwise.
+    """
+    input_hash = compute_hash(input_text)
+    with sqlite3.connect(DB_TRANSLATIONS) as conn:
+        cursor = conn.execute("SELECT 1 FROM translations WHERE input_hash = ?", (input_hash,))
+        return cursor.fetchone() is not None
+    
 def save_translation(word_hash: str, input_text: str, narsese_output: str, model: str, raw_response: str):
     input_hash = compute_hash(input_text)
     narsese_hash = compute_hash(narsese_output)
@@ -283,6 +293,10 @@ def main():
             input_text = html_to_text(raw_html)
             logger.info(f"Texto de entrada: {input_text[:100]}...")
 
+            if input_hash_exists(input_text):
+                logger.info(f"Input hash aready exist: {input_text[:100]}...")
+                continue
+            
             narsese, raw_resp = translate_text(input_text)
             logger.info(f"Narsese gerado: {narsese[:200]}...")
 
