@@ -17,6 +17,7 @@ from typing import Tuple
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from dotenv import load_dotenv
 
 # ---------- Logging (minimal) ----------
 logging.basicConfig(level=logging.WARNING)  # only warnings/errors
@@ -27,7 +28,6 @@ HASH_TO_AVOID = '32aaccb0c4597738cc2fca23b28557802587b9a9fa91d5c8c54beae8aedee5d
 
 # ---------- Backend functions (copied from translator.modular.py) ----------
 def call_groq(prompt_full: str) -> Tuple[str, str]:
-    from dotenv import load_dotenv
     load_dotenv()  # optional, but safe
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
     GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
@@ -165,6 +165,7 @@ def main():
     parser.add_argument("--backend", choices=["ollama", "groq"], default="ollama", help="LLM backend")
     parser.add_argument("--output-format", choices=["text", "json"], default="text", help="Output format")
     parser.add_argument("--delay", type=float, default=0, help="Sleep seconds before query (simulate rate limit)")
+    parser.add_argument("--input", default="texto para exemplo", help="use this text instead of hash prompt")
     args = parser.parse_args()
 
     if args.word and args.word_hash:
@@ -211,8 +212,14 @@ def main():
         time.sleep(args.delay)
 
     # Call LLM
-    full_prompt = PROMPT + input_text
+    full_promt = ""
+    if args.input:
+        full_prompt = PROMPT + args.input
+    else:    
+        full_prompt = PROMPT + input_text
+        
     try:
+        print(full_prompt)
         narsese, raw_response = translate_func(full_prompt)
     except Exception as e:
         print(f"LLM error: {e}", file=sys.stderr)
